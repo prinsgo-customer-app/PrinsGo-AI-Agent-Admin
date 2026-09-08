@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Bot, GitBranch, Cpu, ListTodo, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Bot, GitBranch, Cpu, ListTodo, Zap, AlertTriangle, ShieldCheck, Users, Car } from 'lucide-react';
 
 interface DashboardStats {
   activeTasks: number;
@@ -10,6 +10,8 @@ interface DashboardStats {
   connectedRepos: number;
   connectedProviders: number;
   activeAutomations: number;
+  totalCustomers: number;
+  activeRides: number;
 }
 
 export default function DashboardPage() {
@@ -46,6 +48,11 @@ export default function DashboardPage() {
     { name: 'Active Automations', value: stats?.activeAutomations, icon: Zap, color: 'text-orange-600', bgColor: 'bg-orange-100' },
   ];
 
+  const businessCards = [
+    { name: 'Total Customers', value: stats?.totalCustomers, icon: Users, color: 'text-cyan-600', bgColor: 'bg-cyan-100' },
+    { name: 'Active Rides', value: stats?.activeRides, icon: Car, color: 'text-pink-600', bgColor: 'bg-pink-100' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -54,7 +61,7 @@ export default function DashboardPage() {
 
       {loading ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="bg-white overflow-hidden shadow rounded-lg animate-pulse h-24"></div>
           ))}
         </div>
@@ -63,31 +70,60 @@ export default function DashboardPage() {
           {error}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {statCards.map((item) => (
-            <div key={item.name} className="bg-white overflow-hidden shadow rounded-lg transition hover:shadow-md">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`p-3 rounded-md ${item.bgColor}`}>
-                      <item.icon className={`h-6 w-6 ${item.color}`} aria-hidden="true" />
+        <>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {statCards.map((item) => (
+              <div key={item.name} className="bg-white overflow-hidden shadow rounded-lg transition hover:shadow-md">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className={`p-3 rounded-md ${item.bgColor}`}>
+                        <item.icon className={`h-6 w-6 ${item.color}`} aria-hidden="true" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
-                      <dd>
-                        <div className="text-2xl font-bold text-gray-900">
-                          {item.value === undefined ? '-' : item.value === 0 ? '0' : item.value}
-                        </div>
-                      </dd>
-                    </dl>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
+                        <dd>
+                          <div className="text-2xl font-bold text-gray-900">
+                            {item.value === undefined ? '-' : item.value === 0 ? '0' : item.value}
+                          </div>
+                        </dd>
+                      </dl>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          <h2 className="text-lg font-medium text-gray-900 mt-8 mb-4">Business Analytics</h2>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {businessCards.map((item) => (
+              <div key={item.name} className="bg-white overflow-hidden shadow rounded-lg transition hover:shadow-md border-l-4 border-emerald-500">
+                <div className="p-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className={`p-3 rounded-md ${item.bgColor}`}>
+                        <item.icon className={`h-6 w-6 ${item.color}`} aria-hidden="true" />
+                      </div>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
+                        <dd>
+                          <div className="text-2xl font-bold text-gray-900">
+                            {item.value === undefined ? '-' : item.value === 0 ? '0' : item.value}
+                          </div>
+                        </dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* System Health Section (Placeholder for actual real-time health) */}

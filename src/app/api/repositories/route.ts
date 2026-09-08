@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import connectToDatabase from '@/lib/db';
 import AiRepository from '@/models/AiRepository';
 import '@/models/AiOrganization';
+import mongoose from 'mongoose';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(req: Request) {
@@ -26,7 +27,18 @@ export async function GET(req: Request) {
       .sort({ createdAt: -1 })
       .populate('workspaceId', 'name');
 
-    return NextResponse.json(repos);
+    // Also check if GitHub is actually connected in this workspace
+    const githubConfig = await mongoose.model('AiProviderConfig').findOne({
+      providerName: 'CUSTOM',
+      modelName: 'github_oauth',
+      workspaceId: { $in: decoded.organizations },
+      status: 'ENABLED'
+    });
+
+    return NextResponse.json({
+      repos,
+      isGithubConnected: !!githubConfig,
+    });
   } catch (error) {
     console.error('Repositories endpoint error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

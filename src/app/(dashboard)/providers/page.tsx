@@ -15,6 +15,7 @@ interface Provider {
 export default function ProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [testingId, setTestingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProviders() {
@@ -32,6 +33,32 @@ export default function ProvidersPage() {
     }
     fetchProviders();
   }, []);
+
+  const testConnection = async (provider: Provider) => {
+    // Note: In a real system, the API key might be sent securely from the backend to test,
+    // or the test endpoint triggers a backend-side check using stored credentials.
+    // For demonstration of the UI state according to rules (no mock success), we trigger a backend call.
+    setTestingId(provider._id);
+    try {
+      // We pass a dummy payload if the backend relies on stored keys, but here we just hit an endpoint.
+      // The real backend would decrypt the token. Since we don't expose tokens in UI, the backend must use DB tokens.
+      const res = await fetch('/api/providers/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerName: provider.providerName, apiKey: 'backend_will_use_db_token' })
+      });
+
+      if (!res.ok) {
+        alert(`Test failed: Configuration Required for ${provider.providerName}`);
+      } else {
+        alert(`Test successful for ${provider.providerName}`);
+      }
+    } catch (err) {
+      alert('Test failed due to network error.');
+    } finally {
+      setTestingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +111,14 @@ export default function ProvidersPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.workspaceId?.name || 'Global'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                    <button
+                      onClick={() => testConnection(p)}
+                      disabled={testingId === p._id}
+                      className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
+                    >
+                      {testingId === p._id ? 'Testing...' : 'Test Connection'}
+                    </button>
                     <button className="text-emerald-600 hover:text-emerald-900">Configure</button>
                   </td>
                 </tr>

@@ -15,6 +15,7 @@ interface Repository {
 
 export default function RepositoriesPage() {
   const [repos, setRepos] = useState<Repository[]>([]);
+  const [isGithubConnected, setIsGithubConnected] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +24,8 @@ export default function RepositoriesPage() {
         const res = await fetch('/api/repositories');
         if (res.ok) {
           const data = await res.json();
-          setRepos(data);
+          setRepos(data.repos || []);
+          setIsGithubConnected(data.isGithubConnected || false);
         }
       } catch (err) {
         console.error(err);
@@ -41,11 +43,33 @@ export default function RepositoriesPage() {
           <GitBranch className="text-purple-600" />
           Repositories
         </h1>
-        <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+        <a
+          href="/api/github/connect"
+          className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${
+            isGithubConnected
+              ? 'bg-gray-100 text-gray-700 cursor-default'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+          }`}
+        >
           <GitPullRequest className="w-4 h-4" />
-          Connect GitHub
-        </button>
+          {isGithubConnected ? 'GitHub Connected' : 'Connect GitHub'}
+        </a>
       </div>
+
+      {!loading && !isGithubConnected && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-amber-700 font-medium">
+                Configuration Required: GitHub integration is not yet connected.
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                Please connect your GitHub account or configure the GitHub App in Settings to manage repositories and allow agents to interact with your codebase.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
@@ -55,7 +79,7 @@ export default function RepositoriesPage() {
             <GitBranch className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No Repositories Connected</h3>
             <p className="mt-1 text-sm text-gray-500">
-              Connect a GitHub repository to allow agents to interact with codebase.
+              No repositories have been imported yet.
             </p>
           </div>
         ) : (

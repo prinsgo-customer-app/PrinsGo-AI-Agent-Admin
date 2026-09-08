@@ -2,12 +2,16 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, Lock } from 'lucide-react';
+import { Bot, Lock, Phone } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginMethod, setLoginMethod] = useState<'secret' | 'otp'>('secret');
+
+  const [secret, setSecret] = useState('');
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,18 +20,22 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    const payload = loginMethod === 'secret'
+      ? { secret }
+      : { phone, code };
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         router.push('/');
       } else {
         const data = await res.json();
-        setError(data.error || 'Failed to login');
+        setError(data.message || data.error || 'Failed to login');
       }
     } catch (err) {
       setError('Network error');
@@ -50,32 +58,71 @@ export default function LoginPage() {
             Control Plane Authentication
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+
+        <div className="flex justify-center gap-4 mt-6">
+          <button
+            type="button"
+            onClick={() => setLoginMethod('secret')}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              loginMethod === 'secret' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            Admin Secret
+          </button>
+          <button
+            type="button"
+            onClick={() => setLoginMethod('otp')}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              loginMethod === 'otp' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            Phone & OTP
+          </button>
+        </div>
+
+        <form className="mt-6 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
-                placeholder="Admin Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {loginMethod === 'secret' ? (
+              <div>
+                <input
+                  id="secret"
+                  name="secret"
+                  type="password"
+                  required
+                  className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                  placeholder="Admin Secret Key"
+                  value={secret}
+                  onChange={(e) => setSecret(e.target.value)}
+                />
+              </div>
+            ) : (
+              <>
+                <div>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    required
+                    className="appearance-none rounded-none rounded-t-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                    placeholder="Phone Number (e.g., 9876543210)"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <input
+                    id="code"
+                    name="code"
+                    type="text"
+                    required
+                    className="appearance-none rounded-none rounded-b-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
+                    placeholder="OTP Code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {error && <div className="text-red-500 text-sm text-center">{error}</div>}
@@ -87,7 +134,11 @@ export default function LoginPage() {
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors disabled:opacity-50"
             >
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <Lock className="h-5 w-5 text-emerald-500 group-hover:text-emerald-400" aria-hidden="true" />
+                {loginMethod === 'secret' ? (
+                  <Lock className="h-5 w-5 text-emerald-500 group-hover:text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <Phone className="h-5 w-5 text-emerald-500 group-hover:text-emerald-400" aria-hidden="true" />
+                )}
               </span>
               {loading ? 'Authenticating...' : 'Sign in'}
             </button>

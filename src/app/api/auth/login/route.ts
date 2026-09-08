@@ -1,63 +1,45 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import connectToDatabase from '@/lib/db';
-import AiUser from '@/models/AiUser';
-import { signToken } from '@/lib/auth';
+
+const PRINSGO_BACKEND_URL = process.env.PRINSGO_BACKEND_URL || 'https://prinsgo-backend.onrender.com';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const payload = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
-    }
-
-    await connectToDatabase();
-
-    const user = await AiUser.findOne({ email, status: 'ACTIVE' });
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials or disabled account' }, { status: 401 });
-    }
-
-    // Since we're bridging to existing DB but we need to check, if passwordHash is missing we might need a fallback.
-    // Assuming standard bcrypt usage.
-    const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
-
-    if (!isMatch) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-    }
-
-    user.lastActivityAt = new Date();
-    await user.save();
-
-    const token = signToken({
-      userId: user._id,
-      role: user.role,
-      organizations: user.organizations,
-    });
-
-    const response = NextResponse.json({
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
+    const response = await fetch(`${PRINSGO_BACKEND_URL}/api/admin/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(payload),
     });
 
-    // Set HttpOnly cookie
-    response.cookies.set('admin_token', token, {
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return NextResponse.json(
+        { error: data.message || 'Authentication failed' },
+        { status: response.status || 401 }
+      );
+    }
+
+    const nextResponse = NextResponse.json({
+      success: true,
+      user: data.admin,
+    });
+
+    nextResponse.cookies.set('admin_token', data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 86400, // 1 day
+      maxAge: 30 * 24 * 60 * 60, // 30 days based on backend expiresIn
       path: '/',
     });
 
-    return response;
-  } catch (error: unknown) {
-    console.error('Login error:', error);
+    return nextResponse;
+  } catch (error) {
+    console.error('Login proxy error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

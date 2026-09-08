@@ -7,6 +7,8 @@ import AiAgent from '@/models/AiAgent';
 import AiRepository from '@/models/AiRepository';
 import AiProviderConfig from '@/models/AiProviderConfig';
 import AiAutomation from '@/models/AiAutomation';
+import PrinsGoUser from '@/models/PrinsGoUser';
+import PrinsGoRide from '@/models/PrinsGoRide';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(req: Request) {
@@ -35,6 +37,10 @@ export async function GET(req: Request) {
     const connectedProvidersCount = await AiProviderConfig.countDocuments({ ...orgFilter, status: 'ENABLED' });
     const automationsCount = await AiAutomation.countDocuments({ ...orgFilter, status: 'ACTIVE' });
 
+    // Real business metrics from existing MongoDB
+    const totalCustomersCount = await PrinsGoUser.countDocuments({ role: 'customer' });
+    const activeRidesCount = await PrinsGoRide.countDocuments({ status: { $in: ['accepted', 'started', 'arrived'] } });
+
     return NextResponse.json({
       activeTasks: activeTasksCount,
       pendingApprovals: pendingApprovalsCount,
@@ -42,6 +48,8 @@ export async function GET(req: Request) {
       connectedRepos: connectedReposCount,
       connectedProviders: connectedProvidersCount,
       activeAutomations: automationsCount,
+      totalCustomers: totalCustomersCount,
+      activeRides: activeRidesCount,
     });
   } catch (error) {
     console.error('Stats endpoint error:', error);
