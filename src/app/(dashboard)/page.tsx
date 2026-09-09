@@ -126,7 +126,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* System Health Section (Placeholder for actual real-time health) */}
+      {/* System Health Section  */}
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900 mb-4">System Health</h2>
         <div className="bg-white shadow rounded-lg border border-gray-100 p-6">

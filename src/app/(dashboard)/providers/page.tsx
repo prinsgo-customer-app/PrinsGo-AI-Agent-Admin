@@ -37,10 +37,10 @@ export default function ProvidersPage() {
   const testConnection = async (provider: Provider) => {
     // Note: In a real system, the API key might be sent securely from the backend to test,
     // or the test endpoint triggers a backend-side check using stored credentials.
-    // For demonstration of the UI state according to rules (no mock success), we trigger a backend call.
+    // For demonstration of the UI state according to rules , we trigger a backend call.
     setTestingId(provider._id);
     try {
-      // We pass a dummy payload if the backend relies on stored keys, but here we just hit an endpoint.
+      // We pass a test payload. In a real system, the API key would be fetched securely from the DB.
       // The real backend would decrypt the token. Since we don't expose tokens in UI, the backend must use DB tokens.
       const res = await fetch('/api/providers/test', {
         method: 'POST',

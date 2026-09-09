@@ -3,15 +3,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Bot, GitBranch, ListTodo, Shield, Settings, Server, Cpu } from 'lucide-react';
+import { LayoutDashboard, Users, Bot, GitBranch, ListTodo, Shield, Settings, Server, Cpu, Database, ShieldAlert, Network, Terminal } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Users & Orgs', href: '/users', icon: Users },
   { name: 'Agents', href: '/agents', icon: Bot },
   { name: 'Providers & Models', href: '/providers', icon: Cpu },
+  { name: 'Hermes', href: '/hermes', icon: Terminal },
+  { name: 'Integrations', href: '/integrations', icon: Network },
   { name: 'Repositories', href: '/repositories', icon: GitBranch },
-  { name: 'Tasks & Approvals', href: '/tasks', icon: ListTodo },
+  { name: 'Tasks', href: '/tasks', icon: ListTodo },
+  { name: 'Approvals', href: '/approvals', icon: ShieldAlert },
+  { name: 'Memory', href: '/memory', icon: Database },
   { name: 'Audit Logs', href: '/audit-logs', icon: Shield },
   { name: 'System Health', href: '/system', icon: Server },
   { name: 'Settings', href: '/settings', icon: Settings },
