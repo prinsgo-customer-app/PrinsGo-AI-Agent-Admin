@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import connectToDatabase from '@/lib/db';
 import AiIntegration from '@/models/AiIntegration';
 import { verifyToken } from '@/lib/auth';
+import { HermesClient } from '@/lib/hermesClient';
 
 export async function GET(req: Request) {
   try {
@@ -28,11 +29,34 @@ export async function GET(req: Request) {
       name: 'Hermes'
     });
 
-    // In actual implementation, this will query real Hermes runner status
+    let dbStatus = 'NOT CONFIGURED';
+    let runtimeStatus = 'BLOCKED';
+    let message = 'Hermes integration requires external deployment of the actual Hermes Agent runtime (https://github.com/NousResearch/hermes-agent). The execution environment is currently BLOCKED pending proper backend configuration.';
+
+    if (hermesIntegrations.length > 0) {
+      const hermes = hermesIntegrations[0];
+      dbStatus = hermes.status;
+
+      if (hermes.status === 'CONNECTED' && hermes.config?.baseUrl) {
+         const client = new HermesClient(hermes.config.baseUrl as string, (hermes.config.apiKey as string) || null);
+         const connectionTest = await client.testConnection();
+         runtimeStatus = connectionTest.status;
+         message = connectionTest.message;
+      } else if (hermes.status === 'DISABLED') {
+         runtimeStatus = 'DISABLED';
+         message = 'Hermes is administratively disabled.';
+      }
+    }
+
+    // Fallback block if runtime doesn't respond
+    if (runtimeStatus === 'BLOCKED' || runtimeStatus === 'ERROR') {
+       runtimeStatus = 'BLOCKED';
+       message = 'Hermes integration requires external deployment of the actual Hermes Agent runtime (https://github.com/NousResearch/hermes-agent). Ensure `baseUrl` is correctly configured in integration settings.';
+    }
 
     return NextResponse.json({
-      status: 'BLOCKED',
-      message: 'Hermes integration requires external deployment of the actual Hermes Agent runtime (https://github.com/NousResearch/hermes-agent). The execution environment is currently BLOCKED pending proper backend configuration.'
+      status: runtimeStatus,
+      message: message
     });
   } catch (error) {
     console.error('Hermes endpoint error:', error);
