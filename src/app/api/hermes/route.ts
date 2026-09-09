@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       dbStatus = hermes.status;
 
       if (hermes.status === 'CONNECTED' && hermes.config?.baseUrl) {
-         const client = new HermesClient(hermes.config.baseUrl, hermes.config.apiKey);
+         const client = new HermesClient(hermes.config.baseUrl as string, (hermes.config.apiKey as string) || null);
          const connectionTest = await client.testConnection();
          runtimeStatus = connectionTest.status;
          message = connectionTest.message;
